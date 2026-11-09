@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.venv/
+*.log
+.claude/
+
+# 교과서 실습 노트북(남의 자료)은 흐름을 따르는 데에만 쓰고 저장소에 넣지 않는다
+# 앱 폴더 바로 아래의 smtrain.csv 는 받은 원본 — 앱이 쓰는 사본은 src/data/smtrain.csv 다
+*.ipynb
+/smtrain.csv
+*.pdf
+*.pptx
+*.hwp
+*.docx
+참고자료/
+
+# 개발 기록은 로컬에만 둔다 — 깃허브에 올리지 않는다
+CLAUDE.md

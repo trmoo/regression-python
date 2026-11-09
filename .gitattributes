@@ -1,0 +1,5 @@
+# © 2026 티쳐무 · 모든 권리 보유
+# 줄바꿈은 LF 로 맞춘다. 실습 데이터와 seaborn 묶음은 바이트 그대로 둔다(배포본이 로컬 빌드와 같도록).
+* text=auto eol=lf
+*.csv -text
+*.zip binary

@@ -1,0 +1,43 @@
+저작권 및 이용 범위
+© 2026 티쳐무 · 모든 권리 보유
+
+* 이 저장소의 코드와 문서, 그리고 배포된 웹페이지의 무단 배포 및 상업적 이용을 금합니다.
+* 학교 수업 목적으로만 이용해 주세요. 수업에서 학생에게 주소를 알려 주거나
+  dist/index.html 을 나눠 주는 것은 자유롭게 하셔도 됩니다.
+* 그 밖의 이용(재배포·2차 저작물·수업 외 목적)은 먼저 문의해 주세요.
+* 오픈소스 라이선스를 붙이지 않았습니다. 별도 허락이 없으면 저작권자가 모든 권리를 가집니다.
+  (package.json 의 license 는 npm 관례에 따라 UNLICENSED 로 둡니다)
+
+교안·학습지·수행평가 문서 등 원본 자료는 저작권상 저장소에 포함하지 않았습니다.
+
+
+[실습 흐름과 교과서에 관하여]
+실습의 차례(데이터 불러오기 → 탐색·전처리 → 상관 분석 → 통계적 회귀 → 기계학습 회귀 → 평가)는
+고등학교 「데이터 과학」 교과서 114~121쪽 실습을 따랐습니다. 교과서와 실습 노트북의 문장·주석은 옮기지 않았고,
+화면의 설명·문제·해설·그림 도구는 모두 새로 썼습니다. 실습 노트북 파일은 저장소에 넣지 않았습니다.
+라이브러리 함수를 부르는 코드(pd.read_csv, sm.OLS, LinearRegression 등)는 각 라이브러리의 공개된 쓰는 법을 따른 것입니다.
+
+
+[데이터에 관하여]
+src/data/smtrain.csv 는 위의 「모든 권리 보유」에 들어가지 않습니다.
+원 자료는 다음 데이터셋이며, 크리에이티브 커먼즈 저작자표시 4.0(CC BY 4.0)에 따라 출처를 밝히고 함께 싣습니다.
+
+  Fanaee-T, Hadi, and Gama, Joao. "Event labeling combining ensemble detectors and background knowledge",
+  Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg.
+  Bike Sharing Dataset — UCI Machine Learning Repository. https://doi.org/10.24432/C5W894
+  (미국 워싱턴 D.C. 공유 자전거 Capital Bikeshare 의 2011~2012년 기록)
+
+이 파일은 원 자료의 시간별 기록 가운데 매달 1~19일을 담고, 날짜를 year·month·day·hour·dayofweek 열로 나누었으며,
+count 열을 log(대여 수 + 1) 로 바꾼 것입니다(앱의 「문제와 데이터」 레슨에서 이를 확인합니다).
+
+
+[함께 실은 라이브러리에 관하여]
+src/engine/seaborn-0.13.2.zip 은 seaborn 0.13.2 의 원본 그대로이며 © 2012-2023 Michael L. Waskom,
+BSD-3-Clause 라이선스입니다. 라이선스 전문(LICENSE.md)을 zip 안에 함께 넣었습니다.
+파이썬 실행 엔진 Pyodide 와 numpy·pandas·matplotlib·scipy·statsmodels·scikit-learn 은 앱에 싣지 않고,
+학생이 실행할 때 jsdelivr 에서 받아 옵니다(각 라이브러리의 라이선스를 따릅니다).
+
+
+[개인정보]
+이 앱은 이름·학번 등 개인정보를 받거나 서버로 보내지 않습니다.
+빈칸 답과 통과 표시만 쓰는 사람의 브라우저(localStorage)에 남고, [내 기록 지우기] 로 지울 수 있습니다.

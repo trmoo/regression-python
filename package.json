@@ -1,0 +1,24 @@
+{
+  "name": "regression-python",
+  "version": "1.0.0",
+  "description": "자전거 대여량 회귀 분석 실습실 — 「데이터 과학」 교과서 114~121쪽 회귀 분석 실습을 브라우저의 진짜 파이썬(pandas · statsmodels · scikit-learn)으로 따라 하는 앱",
+  "private": true,
+  "license": "UNLICENSED",
+  "author": "티쳐무",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "node tools/check-syntax.mjs && vite build && node tools/check-dist.mjs",
+    "preview": "vite preview",
+    "test": "node test/run.mjs",
+    "check:syntax": "node tools/check-syntax.mjs",
+    "golden": "node tools/golden.mjs",
+    "seaborn": "python tools/make_seaborn.py"
+  },
+  "devDependencies": {
+    "pyodide": "^314.0.7",
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}
