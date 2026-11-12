@@ -40,24 +40,34 @@ export function logCountPanel(cell, d) {
   let mode = 'raw', x = 5;
   const box = h('div', { class: 'viz-wrap' });
   const info = h('div', { class: 'panel-info' });
+  const total = d.raw.reduce((a, b) => a + b, 0);   // 10,886 — 데이터 줄 수 = 기록된 시간의 수
+  // 막대 i 가 맡은 구간을 사람 말로. 대여 수는 정수라 「34~66대」 처럼 끝을 정수로 적는다(마지막 막대만 오른쪽 끝을 품는다)
+  const rawRange = (i, e) => `${Math.ceil(e[i])}~${i === e.length - 2 ? d.max : Math.ceil(e[i + 1]) - 1}대`;
+  const logRange = (i, e) => `count ${f(e[i])}~${f(e[i + 1])} (대여 수 약 ${won(expm1(e[i]))}~${won(expm1(e[i + 1]))}대)`;
   function draw() {
     const counts = mode === 'raw' ? d.raw : d.log;
     const edges = mode === 'raw' ? d.rawEdges : d.logEdges;
+    const range = mode === 'raw' ? rawRange : logRange;
     const ymax = Math.max(...counts) * 1.1;
-    const C = frame({ h: 260, x: [edges[0], edges[edges.length - 1]], y: [0, ymax], xlab: mode === 'raw' ? '실제 대여 수(대)' : 'count = log(대여 수 + 1)', ylab: '몇 시간', label: '대여량 분포' });
-    counts.forEach((c, i) => C.layer.appendChild(svg('rect', { x: C.sx(edges[i]) + 0.5, y: C.sy(c), width: Math.max(0, C.sx(edges[i + 1]) - C.sx(edges[i]) - 1), height: C.sy(0) - C.sy(c), class: mode === 'raw' ? 'bar-b' : 'bar-a' })));
+    const C = frame({ h: 260, x: [edges[0], edges[edges.length - 1]], y: [0, ymax], xlab: mode === 'raw' ? '그 한 시간 동안 빌려 간 자전거 수(대)' : 'count = log(대여 수 + 1)', ylab: '그런 시간의 수(번)', label: '대여량 분포' });
+    counts.forEach((c, i) => C.layer.appendChild(svg('rect', { x: C.sx(edges[i]) + 0.5, y: C.sy(c), width: Math.max(0, C.sx(edges[i + 1]) - C.sx(edges[i]) - 1), height: C.sy(0) - C.sy(c), class: mode === 'raw' ? 'bar-b' : 'bar-a' },
+      svg('title', {}, `${range(i, edges)} 빌려 간 시간: ${c.toLocaleString('ko-KR')}번`))));
     const at = mode === 'raw' ? expm1(x) : x;
     C.layer.appendChild(svg('line', { x1: C.sx(at), x2: C.sx(at), y1: C.sy(0), y2: C.sy(ymax), class: 'cur' }));
     fill(box, C.root);
+    // 빨간 선이 지나는 막대를 말로 읽어 준다 — 「몇 시간」 이 무엇을 센 것인지 숫자로 보이게
+    let k = edges.findIndex((e, i) => i < edges.length - 1 && at >= e && at < edges[i + 1]);
+    if (k < 0) k = at < edges[0] ? 0 : counts.length - 1;
     fill(info, `count = ${f(x)}  →  대여 수 = e^${f(x)} − 1 ≈ `, h('span', { class: 'big-num' }, `${won(expm1(x))}대`),
+      h('div', { class: 'sub' }, `빨간 선이 지나는 막대: 한 시간에 ${range(k, edges)} 빌려 간 시간이 `, h('strong', {}, `${counts[k].toLocaleString('ko-KR')}번`), ` 있었다(전체 ${total.toLocaleString('ko-KR')}시간의 ${(counts[k] / total * 100).toFixed(1)}%).`),
       h('div', { class: 'sub' }, mode === 'raw'
-        ? `실제 대여 수는 ${d.min}대 ~ ${d.max}대, 평균 ${d.mean}대 · 중앙값 ${d.median}대. 적은 쪽에 몰리고 오른쪽으로 길게 늘어진다.`
+        ? `한 시간 대여 수는 ${d.min}대 ~ ${d.max}대, 평균 ${d.mean}대 · 중앙값 ${d.median}대. 적은 쪽에 몰리고 오른쪽으로 길게 늘어진다.`
         : '로그를 씌우면 큰 값이 많이 줄어 고르게 퍼진다. 직선 회귀는 이쪽을 다루기 쉽다.'));
   }
   const s = slider({ label: 'count 값', min: 0.7, max: 6.9, step: 0.01, value: x, onInput: (v) => { x = v; draw(); }, show: (v) => f(v) });
   draw();
   return h('div', {},
-    h('p', { class: 'lead' }, '한 시간 동안의 대여 수를 막대로 셌다. 두 그림을 바꿔 보고, count 값을 움직여 실제 대여 수로 되돌려 보자.'),
+    h('p', { class: 'lead' }, `데이터의 한 줄은 「어느 날 어느 한 시간」의 기록이다 — 모두 ${total.toLocaleString('ko-KR')}줄이니 ${total.toLocaleString('ko-KR')}시간을 기록한 셈이다. 그 한 시간 동안 빌려 간 자전거 수를 30구간으로 나누고, 구간마다 그런 시간이 몇 번 있었는지 세어 막대로 그렸다(히스토그램). 막대에 마우스를 올리면 숫자가 보인다.`),
     h('div', { class: 'panel-row' }, seg([['raw', '실제 대여 수'], ['log', 'count (로그)']], mode, (v) => { mode = v; draw(); }), s.el),
     box, info);
 }

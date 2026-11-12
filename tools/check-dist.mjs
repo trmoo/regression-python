@@ -1,7 +1,8 @@
 // © 2026 티쳐무 · 모든 권리 보유
 // 빌드 결과 점검 — 한 파일인가, 크기가 알맞은가, 저작권 표시가 남았는가, 바깥 자원을 부르지 않는가,
 // 미리 계산한 결과와 파이썬 일꾼·실행기가 들어 있는가
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { LOCK } from '../src/lib/teacher-lock.js';
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 const bad = [];
 const size = Buffer.byteLength(html);
@@ -18,5 +19,9 @@ if (!html.includes('OLS Regression Results')) bad.push('미리 계산한 결과(
 if (!html.includes('data:application/zip;base64,')) bad.push('seaborn 묶음(seaborn-0.13.2.zip)이 들어 있지 않습니다');
 if (!html.includes('datetime,season,holiday,workingday')) bad.push('실습 데이터(smtrain.csv)가 들어 있지 않습니다');
 if (!html.includes('UCI')) bad.push('데이터 출처(UCI Bike Sharing Dataset) 표시가 빠졌습니다');
+// 교사용 잠금 — 해시는 들어 있고, 비밀번호 원문은 없어야 한다(원문은 깃에 없는 test/local/ 에만)
+if (!html.includes(LOCK.hash)) bad.push('교사용 잠금(teacher-lock.js 의 해시)이 들어 있지 않습니다');
+const PW_FILE = new URL('../test/local/teacher-pw.txt', import.meta.url);
+if (existsSync(PW_FILE) && html.includes(readFileSync(PW_FILE, 'utf8').trim())) bad.push('선생님 비밀번호 원문이 빌드본에 들어 있습니다');
 if (bad.length) { console.error('❌ 빌드 점검 실패\n' + bad.join('\n')); process.exit(1); }
 console.log(`✅ 빌드 점검 — dist/index.html ${(size / 1024).toFixed(0)}KB · 티쳐무 ${marks}번 · 바깥 자원 0개 · 일꾼·실행기·기준 출력·seaborn·데이터·출처 들어 있음`);

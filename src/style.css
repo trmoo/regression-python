@@ -54,7 +54,9 @@ p code, li code, td code, .what code, .tip code { background: var(--code-bg); bo
 .logo { font-size: 2.4rem; line-height: 1; }
 .brand h1 { margin: 0; font-size: 1.45rem; letter-spacing: -0.01em; }
 .brand p { margin: 0; opacity: 0.88; font-size: 0.86rem; }
-.top-links { display: flex; gap: 8px; }
+.top-links { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.btn.save { background: var(--accent); border-color: var(--accent); color: #1c1917; font-weight: 800; }
+.btn.save:hover { background: #fbbf24; }
 
 #nav { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--line); }
 #tabs, #pills { display: flex; gap: 6px; overflow-x: auto; padding: 8px max(16px, calc((100vw - 1180px) / 2)); }
@@ -311,7 +313,6 @@ pre.out { max-height: 460px; overflow: auto; }
 
 /* ── 그림 출력(맷플롯립·씨본) ── */
 .out-img { display: block; max-width: 100%; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
-.ask-before { font-size: 0.75rem; background: var(--accent); color: #1c1917; padding: 1px 8px; border-radius: 99px; font-weight: 800; }
 .tip.colab { border-color: #f9ab00; background: color-mix(in srgb, #f9ab00 9%, var(--card)); }
 .tip.fix { border-color: #dc2626; border-style: dashed; }
 
@@ -370,3 +371,7 @@ pre.out { max-height: 460px; overflow: auto; }
 .calc-out { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; margin: 6px 0; }
 .calc-eq { font-family: var(--mono); font-size: 0.9rem; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; overflow-x: auto; white-space: nowrap; }
 .next-row { display: flex; justify-content: flex-end; margin: 18px 0 8px; }
+/* 선생님 비밀번호 창 */
+.pw-in { width: 100%; font: inherit; font-size: 1.05rem; padding: 8px 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--card); margin: 4px 0; }
+.pw-in:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.pw-err { color: var(--bad); font-weight: 700; margin: 6px 0 0; }

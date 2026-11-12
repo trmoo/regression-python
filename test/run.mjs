@@ -9,6 +9,10 @@ import { readFileSync } from 'fs';
 import { LESSONS, TABS, runnable, graded, answerCode, fillAnswers, splitTemplate } from '../src/lessons/index.js';
 import { CHEAT } from '../src/lessons/t4-wrap.js';
 import { makeEngine, outText } from '../tools/engine-node.mjs';
+import { LOCK, ITER, checkPassword, _resetLock } from '../src/lib/teacher-lock.js';
+import { existsSync, readdirSync, statSync } from 'fs';
+import { buildReport, reportFileName } from '../src/lib/report.js';
+import { join } from 'path';
 
 const golden = JSON.parse(readFileSync(new URL('../src/data/golden.json', import.meta.url), 'utf8'));
 let pass = 0;
@@ -35,7 +39,12 @@ for (const L of LESSONS) {
       ok(n === c.blanks.length && n > 0, `${c.id}: 빈칸 ${n}개인데 blanks ${c.blanks.length}개`);
       c.blanks.forEach((b, i) => ok(b.answers.length > 0 && b.hint, `${c.id} 빈칸 ${i}: 정답 또는 힌트가 없음`));
     }
-    if (c.kind === 'ask') ok(Number.isInteger(c.answer) && c.answer < c.choices.length && c.why && c.id, `${c.id ?? L.id}: 고르기 문제 정답 번호·해설·아이디`);
+    if (c.kind === 'ask') {
+      ok(Number.isInteger(c.answer) && c.answer < c.choices.length && c.why && c.id, `${c.id ?? L.id}: 고르기 문제 정답 번호·해설·아이디`);
+      // 결과 해석 문제는 실행한 뒤에 푼다 — 「실행 전 짐작」 을 다시 넣지 않게(2026-11-12 사용자 지시)
+      ok(c.before === undefined && !/짐작|실행하기 전/.test(`${c.title ?? ''}${c.q}`), `${c.id}: 실행 전에 짐작하는 문제는 쓰지 않는다 — 실행 셀 뒤의 결과 해석으로`);
+      ok(L.cells.slice(0, L.cells.indexOf(c)).some(runnable), `${c.id}: 앞에 실행 셀이 없다 — 결과를 낸 셀 뒤에 둘 것`);
+    }
     if (c.kind === 'panel') {
       ok(PANEL_NAMES.includes(c.panel), `${L.id}: 모르는 그림 도구 ${c.panel}`);
       usedPanels.add(c.panel);
@@ -56,6 +65,66 @@ ok(new Set(answerPos).size >= 3, `고르기 정답 자리가 ${[...new Set(answe
 // ── ⑤ outText 가 화면과 node 에서 같은 코드인가 ──
 const grab = (src) => { const a = src.indexOf('const STAMP'); return src.slice(a, src.indexOf('trimEnd();', a) + 10); };
 ok(grab(readFileSync(new URL('../src/ui/output.js', import.meta.url), 'utf8')) === grab(readFileSync(new URL('../tools/engine-node.mjs', import.meta.url), 'utf8')), 'output.js 와 engine-node.mjs 의 outText 가 다릅니다');
+
+// ── ⑥ 교사용 잠금(정답 채우기 · ?demo) — 2026-11-12 사용자 지시 ──
+ok(/^[0-9a-f]{32}$/.test(LOCK.salt) && /^[0-9a-f]{64}$/.test(LOCK.hash) && ITER >= 100000, '잠금 값 모양(소금 16바이트 · 해시 32바이트 · 되풀이 10만 번 이상)');
+_resetLock();
+// ⚠ 공개되는 이 파일에는 비밀번호를 닮은 값도 적지 않는다 — 닮은 틀린 값은 아래 test/local 쪽에서 원문으로 만든다
+for (const bad of ['', '0000', 'password', 'teacher']) ok((await checkPassword(bad)) === false, `틀린 비밀번호 「${bad}」 가 열렸다`);
+ok((await checkPassword('x')) === false, '다섯 번째 틀린 값'); // 위 네 번 + 이번 = 다섯 번 틀림
+ok((await checkPassword('y')) === 'wait', '다섯 번 틀린 뒤에는 30초 동안 받지 않아야 한다');
+_resetLock();
+const PW_FILE = new URL('./local/teacher-pw.txt', import.meta.url);
+if (existsSync(PW_FILE)) {
+  // 원문은 깃에 올리지 않는 test/local/ 에만 있다 — 그 파일이 있는 컴퓨터에서만 「맞는 비밀번호」 와 「원문이 새지 않았는지」 를 본다
+  const pw = readFileSync(PW_FILE, 'utf8').trim();
+  for (const near of [pw.toUpperCase(), `${pw} `, pw.slice(0, -1)]) ok((await checkPassword(near)) === false, '비밀번호를 닮은 틀린 값(대문자 · 뒤 빈칸 · 한 글자 빠짐)이 열렸다');
+  _resetLock();
+  ok((await checkPassword(pw)) === true, '선생님 비밀번호가 열리지 않는다 — LOCK 값을 다시 만들었나?');
+  _resetLock();
+  const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const files = ['README.md', 'LICENSE', 'index.html', 'package.json', 'vite.config.js', '.github/workflows/deploy.yml'];
+  const walk = (d) => { for (const f of readdirSync(join(root, d))) { const p = join(d, f); if (statSync(join(root, p)).isDirectory()) { if (!/local$/.test(p)) walk(p); } else files.push(p); } };
+  ['src', 'tools', 'test'].forEach(walk);
+  const leaked = files.filter((f) => !/\.(zip|csv)$/.test(f) && readFileSync(join(root, f), 'utf8').includes(pw));
+  ok(leaked.length === 0, `선생님 비밀번호 원문이 들어 있다: ${leaked.join(', ')}`);
+} else console.log('(test/local/teacher-pw.txt 가 없어 맞는 비밀번호 · 원문 새는지 검사는 건너뜁니다)');
+
+// ── ⑦ 💾 활동 저장(HTML 파일) — 2026-11-12 사용자 지시 ──
+{
+  const ALL = LESSONS.flatMap((L) => L.cells);
+  const nCode = ALL.filter(graded).length;
+  const nChoice = ALL.filter((c) => c.kind === 'ask').length + LESSONS.reduce((a, L) => a + (L.quiz?.length ?? 0), 0);
+  const empty = { answers: {}, passed: {}, quiz: {}, free: {}, ask: {}, exam: {}, code: {} };
+  const when = new Date(2026, 10, 12, 9, 5);
+  const blank = buildReport(empty, { when });
+  const escT = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  ok(LESSONS.every((L) => blank.includes(escT(L.title))), '활동 기록에 빠진 레슨 제목이 있다');
+  ok(blank.includes(`0 / ${nCode}`) && blank.includes('(적지 않음)') && blank.includes('2026. 11. 12. 09:05'), '빈 기록의 합계 · 이름 칸 · 저장한 때');
+  ok(reportFileName({ when }) === '자전거회귀분석_활동_20261112.html', '이름을 비우면 파일 이름은 날짜로');
+  ok(reportFileName({ id: '20315', name: '홍 길/동?', when }) === '20315_홍길동_자전거회귀분석.html', '파일 이름에서 빈칸 · 쓸 수 없는 글자를 뺀다');
+  // 모두 맞게 한 학생 — 빈칸에 정답 · 통과 · 고른 답 모두 정답 · 자유 실험에 태그를 넣어 본다
+  const full = { ...empty, answers: {}, passed: {}, ask: {}, quiz: {}, free: {} };
+  for (const c of ALL.filter(graded)) { full.answers[c.id] = c.blanks.map((b) => b.answers[0]); full.passed[c.id] = 1; }
+  for (const c of ALL.filter((x) => x.kind === 'ask')) full.ask[c.id] = c.answer;
+  for (const L of LESSONS) { full.quiz[L.id] = Object.fromEntries((L.quiz ?? []).map((q, i) => [i, q.answer])); }
+  full.free.intro = "print('<script>x = 1</script>')";
+  const done = buildReport(full, { id: '20315', name: '<b>홍길동</b>', when });
+  ok(done.includes(`${nCode} / ${nCode}`) && (done.match(/❌/g) ?? []).length === 0 && (done.match(/⭕/g) ?? []).length === nChoice, '모두 맞힌 기록의 합계와 ⭕ 개수');
+  ok(done.includes('<mark>registered</mark>'), '빈칸에 쓴 글자가 노란 칸으로 들어간다');
+  ok(!/<script/i.test(done) && done.includes('&lt;script&gt;') && done.includes('&lt;b&gt;홍길동'), '학생이 쓴 글자는 태그로 바뀌지 않는다(내려받은 파일에 스크립트 0개)');
+  ok(done.includes('티쳐무'), '활동 기록에 저작권 표시');
+  // 틀린 답 하나 → ❌ 하나
+  const oneWrong = { ...full, ask: { ...full.ask } };
+  const firstAsk = ALL.find((c) => c.kind === 'ask');
+  oneWrong.ask[firstAsk.id] = (firstAsk.answer + 1) % firstAsk.choices.length;
+  ok((buildReport(oneWrong, { when }).match(/❌/g) ?? []).length === 1, '틀린 답은 ❌ 로 남는다');
+  // 학번 · 이름은 파일에만 — 저장소(localStorage)에 넣지 않는다
+  const reportSrc = readFileSync(new URL('../src/lib/report.js', import.meta.url), 'utf8');
+  const mainSrc = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const saveFn = mainSrc.slice(mainSrc.indexOf('async function saveActivity'), mainSrc.indexOf('function route'));
+  ok(saveFn.length > 100 && !/localStorage|sessionStorage|saveStore|store\.\w+\s*=/.test(reportSrc + saveFn), '학번·이름을 브라우저에 저장하는 코드가 있다');
+}
 
 // ── ④ 설명 문장이 기대는 숫자 ──
 const has = (id, s) => ok(outText(golden.cells[id] ?? { items: [] }).includes(s), `${id} 출력에 「${s}」 가 없음 — 설명 문장을 함께 고칠 것`);

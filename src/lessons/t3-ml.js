@@ -149,11 +149,6 @@ export const T3 = {
         { kind: 'panel', panel: 'hourLine', id: 'pn-hl', py: "import pandas as pd, numpy as np, json\ndf = pd.read_csv('smtrain.csv')\nm = df.groupby('hour')['count'].mean()\nb1, b0 = np.polyfit(df['hour'], df['count'], 1)\nprint(json.dumps({'mean': m.round(3).tolist(), 'b0': round(float(b0), 4), 'b1': round(float(b1), 4)}))" },
         { kind: 'tip', tone: 'easy', title: '시각을 「번호표」로 바꾸기', text: '0시·1시·…·23시를 크기가 있는 숫자가 아니라 **24가지 종류**로 다루면, 모델이 시각마다 따로 높이를 정할 수 있다. 「지금이 8시인가?」(0 또는 1) 같은 열을 시각마다 하나씩 만드는 것이다. 이것을 **원-핫 인코딩**이라고 한다.' },
         {
-          kind: 'ask', id: 'mo-guess', before: true, title: '실행하기 전에 짐작해 보기', q: 'hour 를 24가지 종류로 바꿔 넣으면 MSE(지금 1.07)는 어떻게 될까?',
-          choices: ['거의 그대로일 것이다', '크게 줄어들 것이다', '오히려 커질 것이다'],
-          answer: 1, why: '아래에서 직접 확인해 보자 — 0.42 쯤으로 절반 넘게 줄어든다. 시간대에 따른 출퇴근 봉우리를 그릴 수 있게 되었기 때문이다.',
-        },
-        {
           kind: 'code', id: 'mo-dummy', title: 'hour 를 0·1 열들로 바꾸기',
           what: '`drop_first=True` 는 맨 앞 범주(0시) 열을 뺀다. 나머지 23개가 모두 0 이면 0시라는 뜻이라 따로 없어도 된다. `dtype=int` 는 True/False 대신 1/0 으로 만든다.',
           code: "X2 = pd.get_dummies(X, columns=[【0】], drop_first=True, dtype=int)\nprint(X2.shape)\nprint(X2.columns.tolist()[9:13])",
@@ -167,7 +162,12 @@ export const T3 = {
           code: "X2_train, X2_test, y_train, y_test = train_test_split(X2, y, test_size=0.3, random_state=【0】)\nmodel2 = LinearRegression().fit(X2_train, y_train)\nmse2 = mean_squared_error(y_test, model2.predict(X2_test))\nprint('hour 숫자 그대로', round(mse, 4))\nprint('hour 를 범주로', round(mse2, 4))",
           blanks: [{ answers: ['2000'], hint: '지난 레슨과 같은 씨앗 번호', strict: true }],
           vars: ['mse2'],
-          read: 'MSE 가 **0.42** 로 줄었다.',
+          read: '윗줄이 지난 레슨의 모델(hour 를 숫자 하나로), 아랫줄이 hour 를 24가지 종류로 바꾼 모델의 MSE 다.',
+        },
+        {
+          kind: 'ask', id: 'mo-ask-mse', title: '결과 해석', q: '위 두 줄을 견주면, hour 를 범주로 바꾼 뒤 MSE 는 어떻게 되었나?',
+          choices: ['거의 그대로다 (1.07 안팎)', '절반 넘게 줄었다 (1.07 → 0.42)', '오히려 커졌다'],
+          answer: 1, why: '1.0717 → 0.4238 로 60% 가까이 줄었다. 데이터 줄 수도, 나누는 방법(random_state)도 같고 hour 를 넣는 방식 하나만 바꾼 결과다. 왜 이렇게 줄었는지는 아래 그래프와 다음 문제에서 따져 보자.',
         },
         { kind: 'panel', panel: 'mseBars', id: 'pn-mse', py: "import pandas as pd, numpy as np, json\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_squared_error\ndf = pd.read_csv('smtrain.csv')\nX = df[['season', 'workingday', 'weather', 'temp', 'humidity', 'windspeed', 'month', 'day', 'hour', 'dayofweek']]\ny = df['count']\nout = []\nfor name, XX in [('평균만 찍기', None), ('교과서 모델 (hour 숫자)', X), ('hour 를 범주로', pd.get_dummies(X, columns=['hour'], drop_first=True, dtype=int)), ('hour·season·weather 범주', pd.get_dummies(X, columns=['hour', 'season', 'weather'], drop_first=True, dtype=int))]:\n    a, b, c, d = train_test_split(X if XX is None else XX, y, test_size=0.3, random_state=2000)\n    p = np.full(len(d), c.mean()) if XX is None else LinearRegression().fit(a, c).predict(b)\n    out.append({'name': name, 'mse': round(float(mean_squared_error(d, p)), 4)})\nprint(json.dumps(out, ensure_ascii=False))" },
         {

@@ -11,9 +11,13 @@ import { TABS, graded } from './lessons/index.js';
 import { Notebook } from './ui/notebook.js';
 import { buildEngineBar } from './ui/enginebar.js';
 import { start } from './engine/kernel.js';
+import { askTeacher } from './ui/teacher-gate.js';
+import { buildReport, reportFileName, lessonStats } from './lib/report.js';
 
-const views = new Map();
+const views = new Map();   // 열쇠 「탭/레슨」 → { el, nb }
+// 주소 끝 ?demo — 정답을 채워 위에서부터 실행해 두는 시연 모드. 정답을 채우므로 「정답 채우기」 와 같은 비밀번호로 잠근다.
 const DEMO = new URLSearchParams(location.search).has('demo');
+let demoOn = false;
 
 const top = document.getElementById('top');
 const tabs = document.getElementById('tabs');
@@ -26,6 +30,7 @@ top.append(
     h('span', { class: 'logo', 'aria-hidden': 'true' }, '🚲'),
     h('div', {}, h('h1', {}, '자전거 대여량 회귀 분석 실습실'), h('p', {}, '「데이터 과학」 교과서 114~121쪽 — 날씨와 자전거 대여량은 어떤 관계가 있을까? 브라우저의 진짜 파이썬으로'))),
   h('div', { class: 'top-links' },
+    h('button', { class: 'btn save', type: 'button', title: '지금까지 한 활동을 HTML 파일 한 장으로 내려받습니다', onClick: saveActivity }, '💾 활동 저장'),
     h('a', { class: 'btn ghost light', href: '#wrap/summary' }, '📝 한 장 정리'),
     h('button', {
       class: 'btn ghost light', type: 'button', onClick: async () => {
@@ -36,6 +41,35 @@ top.append(
         setTimeout(() => location.reload(), 600);
       },
     }, '🧹 내 기록 지우기')));
+
+// 💾 활동 저장 — 학번·이름은 내려받는 파일에만 넣고 어디에도 저장하지 않는다(화면을 닫으면 사라진다)
+async function saveActivity() {
+  const store = loadStore();
+  const s = TABS.flatMap((t) => t.lessons).map((l) => lessonStats(l, store))
+    .reduce((a, x) => [a[0] + x.passed, a[1] + x.codes, a[2] + x.askRight + x.quizRight, a[3] + x.asks + x.quiz], [0, 0, 0, 0]);
+  const field = (label, ph) => {
+    const input = h('input', { type: 'text', class: 'pw-in', autocomplete: 'off', spellcheck: 'false', placeholder: ph, 'aria-label': label, maxlength: 20 });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.closest('.modal')?.querySelector('.primary')?.click(); } });
+    return input;
+  };
+  const id = field('학번', '학번 (예: 20315)');
+  const name = field('이름', '이름');
+  const body = h('div', {},
+    h('p', {}, `지금까지의 활동 — 빈칸 셀 ${s[0]} / ${s[1]}개 통과 · 문제 ${s[2]} / ${s[3]}개 맞힘. 빈칸에 쓴 코드 · 고른 답 · 자유 실험 코드를 HTML 파일 한 장으로 내려받습니다.`),
+    id, name,
+    h('p', { class: 'tiny' }, '학번·이름은 내려받는 파일에만 들어가고 이 브라우저에는 남지 않아요. 비워 두어도 됩니다.'));
+  setTimeout(() => id.focus(), 30);
+  if (!(await modal('💾 활동을 HTML 파일로 저장', body, { ok: '내려받기', cancel: '취소' }))) return;
+  const who = { id: id.value.trim(), name: name.value.trim(), when: new Date() };
+  const blob = new Blob([buildReport(store, who)], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { href: url, download: reportFileName(who) });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(`「${reportFileName(who)}」 를 내려받았어요. 내려받기 폴더를 확인하세요.`);
+}
 
 function route() {
   const [a, b] = location.hash.slice(1).split('/');
@@ -82,11 +116,11 @@ function show() {
   if (!views.has(key)) {
     const nb = new Notebook(lesson, golden, drawNav);
     nb.el.appendChild(nextLink(lesson) ?? h('span', {}));
-    // 주소에 ?demo 를 붙이면 정답을 채워 위에서부터 실행해 둔다(교사 시연·화면 캡처용)
-    if (DEMO) queueMicrotask(() => nb.demo());
-    views.set(key, nb.el);
+    // ?demo 를 선생님이 열어 두었으면 정답을 채워 위에서부터 실행해 둔다(교사 시연·화면 캡처용)
+    if (demoOn) queueMicrotask(() => nb.demo());
+    views.set(key, { el: nb.el, nb });
   }
-  main.replaceChildren(views.get(key));
+  main.replaceChildren(views.get(key).el);
   document.title = `${lesson.short} · 자전거 대여량 회귀 분석 실습실`;
   window.scrollTo(0, 0);
 }
@@ -97,4 +131,12 @@ new ResizeObserver(syncHeight).observe(document.getElementById('nav'));
 
 window.addEventListener('hashchange', show);
 show();
-if (DEMO) start();
+if (DEMO) {
+  askTeacher('주소 끝의 ?demo 는 모든 빈칸에 정답을 채워 실행하는 선생님 시연 모드예요. 선생님 비밀번호를 넣어 주세요(취소하면 보통 화면으로 씁니다).').then((ok) => {
+    if (!ok) return;
+    demoOn = true;
+    start();
+    const { tab, lesson } = route();
+    views.get(`${tab.id}/${lesson.id}`)?.nb.demo();
+  });
+}

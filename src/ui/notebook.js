@@ -11,6 +11,7 @@ import { splitTemplate, runnable, graded, fillAnswers, normalize } from '../less
 import { highlight, renderResult, outText } from './output.js';
 import { buildPanel } from './panels/index.js';
 import { buildQuiz } from './quiz.js';
+import { askTeacher } from './teacher-gate.js';
 
 const TIP_ICON = { easy: '🧸', key: '⭐', warn: '⚠️', colab: '📒', fix: '✏️', compare: '⚖️' };
 const TIP_LABEL = { easy: '쉽게 말하면', key: '꼭 기억', warn: '함정 주의', colab: '코랩에서는', fix: '바로잡음', compare: '정리' };
@@ -86,7 +87,7 @@ export class Notebook {
       h('button', { class: 'btn primary', onClick: () => this.runAll(), title: '빈칸을 채운 셀을 위에서부터 차례대로 실행합니다' }, '▶ 위에서부터 모두 실행'),
       h('button', { class: 'btn', onClick: () => this.restart(), title: '변수·실행 결과와 이 레슨의 빈칸 답을 지우고 처음 상태로 돌아갑니다' }, '🔄 다시 시작'),
       h('span', { class: 'spacer' }),
-      L.cells.some(graded) && h('button', { class: 'btn ghost', onClick: () => this.teacherFill() }, '👩‍🏫 정답 채우기'));
+      L.cells.some(graded) && h('button', { class: 'btn ghost', onClick: () => this.teacherFill(), title: '선생님 비밀번호가 있어야 열립니다' }, '🔒 정답 채우기(교사용)'));
 
     const body = h('div', { class: 'cells' });
     for (const c of L.cells) {
@@ -108,7 +109,7 @@ export class Notebook {
     const store = loadStore();
     const { choices, why } = choiceBlock(c, store.ask[c.id], (ci) => { store.ask[c.id] = ci; saveStore(); });
     return h('section', { class: 'cell ask' },
-      h('header', {}, h('h4', {}, `🤔 ${c.title ?? '결과 해석'}`), c.before ? h('span', { class: 'ask-before' }, '실행 전에') : h('span', { class: 'kind' }, '해석')),
+      h('header', {}, h('h4', {}, `🤔 ${c.title ?? '결과 해석'}`), h('span', { class: 'kind' }, '해석')),
       h('p', { class: 'quiz-q' }, rich(c.q)), choices, why);
   }
 
@@ -386,6 +387,8 @@ export class Notebook {
   }
 
   async teacherFill() {
+    // 선생님 비밀번호가 먼저 — 학생이 단추 한 번으로 모든 정답을 채우지 못하게(2026-11-12 사용자 지시)
+    if (!(await askTeacher('「정답 채우기」 단추는 선생님 시연용이에요. 선생님 비밀번호를 넣으면 이 레슨의 모든 빈칸에 정답이 들어갑니다.'))) return;
     const ok = await modal('정답을 모두 채울까요?', '교사 시연용입니다. 이 레슨의 모든 빈칸에 정답을 넣습니다(학생이 쓴 답은 지워집니다). 채운 뒤 [▶ 위에서부터 모두 실행] 을 누르세요.', { ok: '정답 채우기', cancel: '취소' });
     if (!ok) return;
     const store = loadStore();
