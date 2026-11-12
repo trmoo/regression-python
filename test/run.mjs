@@ -141,7 +141,19 @@ has('ft-const', '10886 rows x 5 columns');
 has('ft-summary', 'R-squared:                       0.444'); has('ft-summary', '0.966'); has('ft-summary', '0.0980'); has('ft-summary', '0.473');
 has('us-drop', '0.444 0.444'); has('us-drop', '0.4438 0.4438');
 has('us-params', '3.199485'); has('us-params', '-0.013371');
-has('us-predict', '4.66'); has('us-predict', '104.6');
+// 결과표 더 읽기 ①~③ — 설명 문장의 숫자
+has('ft-r2', '12194.1 21931.6'); has('ft-r2', '0.444 0.444');
+has('ft-t', '63.409'); has('ft-t', '0.042'); has('ft-t', '40.823'); has('ft-t', '-23.265');
+has('ft-f', '4.0 10886.0'); has('ft-f', '2172.2 2172.2');
+has('ft-one', '5255.46 5255.46');
+has('ft-line', '3.198328'); has('ft-line', '0.000056'); has('ft-line', '2.6454 2.6454');
+has('ft-summary', '2172.'); has('ft-summary', '5.56e-05'); has('ft-summary', '63.409');
+// 2026-11-12 — 회귀식 레슨은 빈칸 없이 코드를 모두 보여 주고 예측 부분은 뺐다
+{
+  const use = LESSONS.find((L) => L.id === 'use');
+  ok(!use.cells.some(graded) && !use.cells.some((c) => /【\d+】/.test(c.code ?? '')), '회귀식 레슨에 빈칸이 남아 있다');
+  ok(!use.cells.some((c) => /predict|expm1/.test(c.code ?? '')) && !(use.quiz ?? []).some((q) => /expm1/.test(q.q + q.choices.join())), '회귀식 레슨에 예측 부분이 남아 있다');
+}
 has('sp-shape', '(7620, 10) (3266, 10)');
 has('tr-real', '5050    5.799093');
 has('tr-side', '329.0'); has('tr-side', '87.0');

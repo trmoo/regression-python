@@ -15,6 +15,8 @@ export const T2 = {
         '독립 변수 X 와 종속 변수 y 를 정한다',
         '`sm.add_constant( )` 로 상수항을 더하고 `sm.OLS(y, X).fit( )` 으로 회귀식을 구한다',
         '`summary( )` 에서 **R²(결정 계수)** · **coef(계수)** · **P>|t|(유의 확률)** 을 읽는다',
+        'R² 를 직접 계산하고, **F-통계량**(모델 전체)과 **t-통계량**(계수 하나)이 무엇을 검정하는지 견준다',
+        'coef 열로 **회귀식**을 세우고, 한 줄을 넣어 모델의 예측값과 같은지 확인한다',
       ],
       cells: [
         { kind: 'example', id: 'ft-load', title: '준비 — 데이터 읽기', code: LOAD },
@@ -68,10 +70,53 @@ export const T2 = {
           choices: ['예측이 44.4% 맞는다', '대여량(count)이 들쭉날쭉한 정도의 약 44% 를 이 네 변수로 설명한다', '상관계수가 0.444 다'],
           answer: 1, why: '결정 계수는 종속 변수의 변동 가운데 회귀식이 설명하는 비율이다. 나머지 56% 는 날씨·요일·계절 같은 다른 까닭이나 우연이다.',
         },
+        // ── 결과표 더 읽기 ①~③ (2026-11-12 사용자 지시 — R² · F vs t · 회귀계수로 회귀식) ──
+        { kind: 'section', title: '결과표 더 읽기 ① 결정 계수 R² 를 직접 계산하기', text: '`count` 값은 평균 둘레로 들쭉날쭉 흩어져 있다. 평균과의 차이를 제곱해 모두 더한 것이 **전체 변동**이다. 회귀식으로 예측하고도 남은 차이(**잔차** = 실제값 − 예측값)를 제곱해 더한 것이 **남은 변동**이다. 그러면 **R² = 1 − 남은 변동 ÷ 전체 변동** — 전체 흩어짐 가운데 식이 설명해 낸 몫이다.' },
+        {
+          kind: 'example', id: 'ft-r2', title: 'R² 를 손으로 계산하기',
+          code: "resid = results.resid                  # 잔차 = 실제값 − 예측값\nsse = (resid ** 2).sum()               # 식이 설명하지 못하고 남은 변동\nsst = ((y - y.mean()) ** 2).sum()      # count 의 전체 변동\nprint(round(sse, 1), round(sst, 1))\nprint(round(1 - sse / sst, 4), round(results.rsquared, 4))",
+          read: '전체 변동 21931.6 가운데 식이 설명하지 못하고 남은 것이 12194.1 이다. 1 − 12194.1 ÷ 21931.6 = **0.444** — 결과표의 R-squared 와 같다. 식이 설명해 낸 몫은 21931.6 − 12194.1 = 9737.5 다.',
+        },
+        { kind: 'tip', tone: 'easy', title: 'R² 를 읽는 법', text: 'R² 는 0 ~ 1 이다. 0 이면 식이 평균으로 찍는 것보다 나을 게 없고, 1 이면 모든 점이 식 위에 있다. 0.444 는 「대여량이 오르내리는 까닭의 44% 쯤을 기온 · 시각 · 습도 · 풍속으로 설명했다」는 뜻이다. **「예측이 44% 맞는다」는 뜻이 아니다.** 교재마다 남은 변동을 SSE 또는 SSR 로 서로 다르게 줄여 쓰니, 줄임말보다 뜻으로 기억하자.' },
         {
           kind: 'ask', id: 'ft-ask-p', title: '결과 해석', q: '유의수준 0.05 에서 **유의하지 않은** 변수는?',
           choices: ['temp', 'hour', 'humidity', 'windspeed'],
           answer: 3, why: 'windspeed 의 P>|t| 가 **0.966** 으로 0.05 보다 훨씬 크다. 계수도 0.0000556 으로 0 에 가깝고, 신뢰구간 [−0.003, 0.003] 이 0 을 품고 있다. 상관 분석에서 0.3 기준에 못 미쳤던 변수다.',
+        },
+        { kind: 'section', title: '결과표 더 읽기 ② F-통계량 vs t-통계량', text: '결과표에는 검정 통계량이 두 가지 있다. **t** 는 아래 계수표 안에 변수마다 하나씩, **F** 는 위쪽에 모델 전체에 하나 있다. 둘 다 「클수록 우연이라고 보기 어렵다」는 값이고, 그 정도를 확률로 바꾼 것이 p 값(`P>|t|` · `Prob (F-statistic)`)이다.' },
+        {
+          kind: 'example', id: 'ft-t', title: 't-통계량을 직접 계산하기',
+          code: "t = results.params / results.bse        # t = coef ÷ std err\nprint(t.round(3))",
+          read: 'coef 를 std err(표준 오차)로 나누면 결과표의 t 열과 같다. hour 는 0.09796 ÷ 0.001545 ≈ **63.409** — 계수가 흔들림의 63배나 되니 「사실은 0 인데 우연히 이렇게 나왔다」고 보기 어렵다(결과표에는 std err 가 0.002 로 반올림되어 찍힌다). windspeed 는 **0.042** 로 흔들림보다도 작아서 p 값이 0.966 이다.',
+        },
+        {
+          kind: 'example', id: 'ft-f', title: 'F-통계량을 직접 계산하기',
+          code: "k = results.df_model                   # 독립 변수 수(상수항 빼고)\nn = results.nobs                       # 줄 수\nr2 = results.rsquared\nF = (r2 / k) / ((1 - r2) / (n - k - 1))\nprint(k, n)\nprint(round(F, 1), round(results.fvalue, 1))",
+          read: 'F = (R² ÷ 4) ÷ ((1 − R²) ÷ (10886 − 4 − 1)) = (0.444 ÷ 4) ÷ (0.556 ÷ 10881) ≈ **2172.2** — 결과표의 F-statistic 과 같다. 「식이 설명한 몫(변수 하나당)」이 「남은 몫(자유도 하나당)」의 2172배라는 뜻이다. 그래서 Prob (F-statistic) 이 0.00 으로 찍힐 만큼 작다.',
+        },
+        {
+          kind: 'tip', tone: 'compare', title: 't-통계량과 F-통계량 견주기', table: {
+            head: ['', 't-통계량', 'F-통계량'],
+            rows: [
+              ['무엇을 보나', '계수 **하나**', '모델 **전체**(독립 변수를 한꺼번에)'],
+              ['검정하는 가설', '「이 계수는 0 이다」 — 이 변수는 보탬이 없다', '「상수항을 뺀 계수가 **모두** 0 이다」 — 이 식은 쓸모없다'],
+              ['계산', 'coef ÷ std err', '(R² ÷ 변수 수) ÷ ((1 − R²) ÷ 남은 자유도)'],
+              ['결과표 자리', '계수표의 `t` · `P>|t|` 열', '위쪽 `F-statistic` · `Prob (F-statistic)`'],
+              ['이 결과', 'temp · hour · humidity 는 유의, **windspeed 는 유의하지 않음**(p 0.966)', 'F 2172.2, p ≈ 0 → **모델은 유의**'],
+              ['값 꺼내기', '`results.tvalues` · `results.pvalues`', '`results.fvalue` · `results.f_pvalue`'],
+            ],
+          },
+        },
+        {
+          kind: 'example', id: 'ft-one', title: '변수가 하나면 F = t²',
+          what: 'hour 하나만으로 회귀식을 구해, hour 의 t 를 제곱한 값과 모델의 F 를 견주어 보자.',
+          code: "r1 = sm.OLS(y, sm.add_constant(smtrain[['hour']])).fit()\nprint(round(r1.tvalues['hour'] ** 2, 2), round(r1.fvalue, 2))",
+          read: '두 값이 **5255.46** 으로 같다. 독립 변수가 하나면 「그 계수가 0 인가」와 「모델이 쓸모없나」가 같은 물음이기 때문이다. 변수가 여럿이면 다르다 — F 검정은 「적어도 하나는 쓸모 있다」까지만 말해 준다.',
+        },
+        {
+          kind: 'ask', id: 'ft-ask-ft', title: '결과 해석', q: '이 결과표는 **F 검정은 유의한데 windspeed 의 t 검정은 유의하지 않다.** 알맞은 해석은?',
+          choices: ['모순이다 — 계산이 잘못되었다', 'windspeed 가 가장 중요한 변수다', '네 변수를 합친 모델은 쓸모 있지만, windspeed 하나는 다른 변수가 있을 때 보탬이 없다'],
+          answer: 2, why: 'F 는 모델 전체를, t 는 변수 하나를 본다. 그래서 F 로 모델이 쓸모 있는지 먼저 보고, t 로 변수를 하나씩 가린다. 다음 레슨에서 windspeed 를 빼도 R² 가 그대로인 것을 확인한다.',
         },
         {
           kind: 'ask', id: 'ft-ask-coef', title: '결과 해석', q: '`hour` 의 coef 가 0.0980 이다. 뜻으로 알맞은 것은?',
@@ -79,6 +124,14 @@ export const T2 = {
           answer: 0, why: '계수는 「그 변수만 1 늘고 나머지는 그대로일 때 y 가 바뀌는 양」이다. y 가 로그 값이므로 자전거 대수로는 곱으로 바뀐다 — 아래 상자를 보자.',
         },
         { kind: 'tip', tone: 'key', title: '🔬 더 깊이 — 로그 값의 계수를 대여 수로 읽기', text: 'count = log(대여 수 + 1) 이므로 count 가 0.098 커지면 (대여 수 + 1) 은 e^0.098 ≈ **1.10배**가 된다. 곧 「한 시간 늦을 때마다 대여 수가 약 10% 많아진다」는 뜻이다. temp 의 0.0538 은 1℃ 오를 때마다 약 5.5%, humidity 의 −0.0134 는 습도 1% 오를 때마다 약 1.3% 줄어든다는 뜻이다.' },
+        { kind: 'section', title: '결과표 더 읽기 ③ 회귀계수로 회귀식 세우기', text: '`coef` 열이 회귀식의 계수다. `const` 는 절편, 나머지는 그 변수에 곱할 기울기다. 결과표의 `5.56e-05` 는 5.56 × 10⁻⁵ = **0.0000556** 이라는 뜻이다. 그대로 옮기면 **count = 3.1983 + 0.0538 × temp + 0.0980 × hour − 0.0134 × humidity + 0.0000556 × windspeed** 다.' },
+        {
+          kind: 'example', id: 'ft-line', title: '회귀식에 첫 줄을 넣어 보기',
+          what: '`results.params` 로 계수를 꺼내, 데이터 첫 줄의 값을 식에 직접 넣어 계산한다. 모델이 낸 예측값(`fittedvalues`)과 같은지 견주어 보자.',
+          code: "b = results.params\nprint(b)\nrow = X.iloc[0]                        # 첫 줄 — 2011-01-01 0시\nhand = (b['const'] + b['temp'] * row['temp'] + b['hour'] * row['hour']\n        + b['humidity'] * row['humidity'] + b['windspeed'] * row['windspeed'])\nprint(round(hand, 4), round(results.fittedvalues.iloc[0], 4))",
+          read: '첫 줄은 기온 9.84℃ · 0시 · 습도 81% · 풍속 0 이다. 3.1983 + 0.0538 × 9.84 + 0.0980 × 0 − 0.0134 × 81 + 0.0000556 × 0 ≈ 2.64 — 계수를 끝자리까지 쓰면 **2.6454** 로, 모델의 예측값과 똑같다. 실제 count 는 2.833 이니 이 줄의 잔차는 약 0.19 다.',
+        },
+        { kind: 'tip', tone: 'easy', title: '회귀선? 회귀면!', text: '독립 변수가 하나면 회귀식은 그래프 위의 **직선**(회귀선)이다. 넷이면 5차원 공간의 「평평한 면」이 되어 그림으로 그릴 수 없다. 그림으로 보려면 다른 변수를 한 값(예: 평균)에 묶어 두고 하나만 움직인다 — 다음 레슨의 회귀식 계산기가 그렇게 그린다. windspeed 는 유의하지 않으니 다음 레슨에서 빼고 식을 다시 세운다.' },
       ],
       quiz: [
         { q: '`sm.OLS(y, X)` 에서 첫째 자리에 오는 것은?', choices: ['독립 변수 X', '종속 변수 y', '상수항'], answer: 1, why: 'statsmodels 는 (y, X) 차례다. scikit-learn 의 fit(X, y) 와 반대다.' },
@@ -90,38 +143,29 @@ export const T2 = {
 
     // ───────────────────────── Ⅱ-2 회귀식 다듬기와 예측 ─────────────────────────
     {
-      id: 'use', title: '회귀식 다듬기와 예측', short: '회귀식·예측',
+      // 2026-11-12 사용자 지시 — 예측 부분(새 조건으로 예측 · expm1)을 빼고, 이 레슨은 빈칸 없이 코드를 모두 보여 준다
+      id: 'use', title: '회귀식 다듬기', short: '회귀식',
       goal: [
         '유의하지 않은 변수를 빼고 다시 적합해 R² 를 견준다',
         '`params` 로 계수를 꺼내 **회귀식**을 적는다',
-        '새 조건을 넣어 대여량을 예측하고 `np.expm1( )` 로 대여 수로 되돌린다',
       ],
       cells: [
         { kind: 'example', id: 'us-load', title: '준비 — 지난 레슨의 모델 다시 만들기', what: '데이터를 읽고, 네 변수로 만든 모델 `results` 를 다시 만든다.', code: LOAD + '\n' + OLS4 + "\nprint('준비 끝')" },
         { kind: 'section', title: 'windspeed 를 빼면?', text: '유의하지 않은 변수는 빼고 다시 적합하는 것이 보통이다. 설명력이 얼마나 줄어드는지 견주어 보자.' },
         {
-          kind: 'code', id: 'us-drop', title: '세 변수로 다시 적합하기',
-          code: "X2 = sm.add_constant(smtrain[['temp', 'hour', 'humidity']])\nresults2 = sm.OLS(y, X2).fit()\nprint(round(results.rsquared, 4), round(results2.【0】, 4))\nprint(round(results.rsquared_adj, 4), round(results2.rsquared_adj, 4))",
-          blanks: [{ answers: ['rsquared'], hint: 'R-squared 를 한 낱말로(소문자)' }],
-          vars: ['results2'],
+          kind: 'example', id: 'us-drop', title: '세 변수로 다시 적합하기',
+          what: 'windspeed 를 뺀 세 변수로 모델 `results2` 를 만들고, 네 변수 모델 `results` 와 R² · 수정 결정 계수를 나란히 찍는다.',
+          code: "X2 = sm.add_constant(smtrain[['temp', 'hour', 'humidity']])\nresults2 = sm.OLS(y, X2).fit()\nprint(round(results.rsquared, 4), round(results2.rsquared, 4))\nprint(round(results.rsquared_adj, 4), round(results2.rsquared_adj, 4))",
           read: '첫 줄(R²)도 둘째 줄(수정 결정 계수)도 넷째 자리까지 **똑같다**. windspeed 는 설명에 보태는 것이 없었다.',
         },
         { kind: 'tip', tone: 'easy', title: '수정 결정 계수(Adj. R-squared)', text: 'R² 는 변수를 더하기만 하면 (쓸모없는 변수라도) 커지거나 그대로다. 그래서 변수 개수만큼 깎아 주는 **수정 결정 계수**로 모델을 견준다. 변수를 뺐는데 수정 결정 계수가 그대로이거나 커지면 뺀 변수는 쓸모가 없었다는 뜻이다. 변수가 적은 식은 읽기도 쉽다.' },
         {
-          kind: 'code', id: 'us-params', title: '계수 꺼내기',
-          code: "results2.【0】",
-          blanks: [{ answers: ['params'], hint: 'parameters(매개변수) 의 줄임말' }],
+          kind: 'example', id: 'us-params', title: '계수 꺼내기',
+          what: '`params`(parameters, 매개변수) 에 회귀식의 계수가 담겨 있다.',
+          code: "results2.params",
           read: '회귀식은 **count = 3.1995 + 0.0538 × temp + 0.0980 × hour − 0.0134 × humidity** 다.',
         },
         { kind: 'panel', panel: 'predictCalc', id: 'pn-calc', py: "import pandas as pd, json\nimport statsmodels.api as sm\ndf = pd.read_csv('smtrain.csv')\nr = sm.OLS(df['count'], sm.add_constant(df[['temp', 'hour', 'humidity']])).fit()\nm = df.groupby('hour')['count'].mean().round(3)\nprint(json.dumps({'b': {k: float(v) for k, v in r.params.items()}, 'hourMean': m.tolist(), 'tempMean': round(float(df['temp'].mean()), 2), 'humMean': round(float(df['humidity'].mean()), 2)}))" },
-        { kind: 'section', title: '새 조건으로 예측하기', text: '기온 25℃, 습도 50% 인 날 **아침 8시**의 대여량을 예측해 보자. 예측할 값도 모델을 만들 때와 같은 열(`const` 포함)을 가진 표로 넣는다.' },
-        {
-          kind: 'code', id: 'us-predict', title: '예측값 구하기',
-          code: "import numpy as np\nnew = pd.DataFrame({'const': [1.0], 'temp': [25], 'hour': [【0】], 'humidity': [50]})\npred = results2.predict(new)\nprint(pred.round(3))\nprint(np.expm1(pred).round(1))",
-          blanks: [{ answers: ['8'], hint: '아침 몇 시?' }],
-          vars: ['pred'],
-          read: '예측 count 는 4.66, 대여 수로 되돌리면 약 **104.6 대**다.',
-        },
         {
           kind: 'ask', id: 'us-ask-line', title: '생각해 보기', q: '이 회귀식에서 hour 는 1 늘 때마다 **늘 똑같이** 0.098 씩 더해진다. 앞에서 본 시간대별 평균 대여량과 견주면?',
           choices: ['실제로도 시각이 늦을수록 꾸준히 늘어나므로 잘 맞는다', '실제는 8시·17시에 솟았다 내려가는 모양이라, 직선 하나로는 이 모양을 그릴 수 없다', '시각은 대여량과 관계가 없다'],
@@ -131,7 +175,7 @@ export const T2 = {
       quiz: [
         { q: '변수를 하나 뺐는데 R² 가 거의 그대로라면?', choices: ['뺀 변수는 설명에 거의 보탬이 되지 않았다', '모델이 잘못 만들어졌다', '그 변수가 가장 중요했다'], answer: 0, why: '설명력이 그대로이니 빼도 손해가 없다. 변수가 적은 식이 읽기도 쉽다.' },
         { q: '회귀식 count = 3.2 + 0.05×temp 에서 temp 가 20 이면 count 는?', choices: ['3.25', '4.2', '23.2'], answer: 1, why: '3.2 + 0.05 × 20 = 3.2 + 1.0 = 4.2.' },
-        { q: '예측한 count(로그 값)를 실제 대여 수로 되돌리는 함수는?', choices: ['`np.log1p( )`', '`np.expm1( )`', '`np.round( )`'], answer: 1, why: 'count = log(대여 수 + 1) 이므로 대여 수 = e^count − 1 = expm1(count).' },
+        { q: '모델끼리 견줄 때 R² 대신 **수정 결정 계수(Adj. R-squared)** 를 보는 까닭은?', choices: ['R² 를 백분율로 바꾸려고', '음수 값을 없애려고', '변수 개수를 감안해, 쓸모없는 변수를 넣으면 깎이게 하려고'], answer: 2, why: 'R² 는 변수를 더하기만 해도 커지거나 그대로다. 수정 결정 계수는 변수 개수만큼 깎으므로, 변수 수가 다른 모델을 공정하게 견줄 수 있다.' },
       ],
     },
   ],

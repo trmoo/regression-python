@@ -177,7 +177,7 @@ const SUMMARY_HELP = [
   ['Dep. Variable:', /Dep\. Variable:/, '종속 변수 — 설명하려는 결과(`count`).', ''],
   ['R-squared:', /(?<!Adj\. )R-squared:/, '결정 계수 — count 의 흩어짐 가운데 이 식이 설명하는 비율(0 ~ 1). 1 에 가까울수록 잘 맞는다.', 'results.rsquared'],
   ['Adj. R-squared:', /Adj\. R-squared:/, '수정 결정 계수 — 쓸모없는 변수를 넣으면 깎이도록 변수 개수를 감안한 R². 모델끼리 견줄 때 쓴다.', 'results.rsquared_adj'],
-  ['F-statistic:', /F-statistic:/, '모델 전체의 F 통계량 — 「모든 계수가 0 이다(이 식은 쓸모없다)」를 검정한다.', 'results.fvalue'],
+  ['F-statistic:', /F-statistic:/, '모델 전체의 F 통계량 — 「상수항을 뺀 계수가 모두 0 이다(이 식은 쓸모없다)」를 검정한다. 아래 「결과표 더 읽기 ②」에서 t 와 견준다.', 'results.fvalue'],
   ['Prob (F-statistic):', /Prob \(F-statistic\):/, '위 F 검정의 p 값. 0.05 보다 작으면 「모델이 유의하다」. 0.00 은 아주 작다는 뜻이다.', 'results.f_pvalue'],
   ['No. Observations:', /No\. Observations:/, '데이터 수(줄 수) — 10,886줄 전체를 썼다.', 'results.nobs'],
   ['Df Model:', /Df Model:/, '모델 자유도 = 독립 변수 개수(상수항 제외).', 'results.df_model'],
