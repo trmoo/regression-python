@@ -19,6 +19,7 @@ export const T2 = {
       cells: [
         { kind: 'example', id: 'ft-load', title: '준비 — 데이터 읽기', code: LOAD },
         { kind: 'section', title: '(1) 독립 변수와 종속 변수 선택하기', text: '앞 단원에서 고른 `temp` · `hour` · `humidity` 에 `windspeed` 를 더한 네 변수로 대여량(`count`)을 설명해 보자. 교과서 노트북과 같은 선택이다.' },
+        { kind: 'tip', tone: 'key', title: '왜 windspeed 를 더할까', text: '앞 단원에서 `windspeed` 와 `count` 의 상관계수는 **0.12** 로, 0.3 기준에 못 미쳤다. 교과서 노트북은 까닭을 적지 않았지만 이렇게 볼 수 있다. ① 이 실습의 물음은 「**날씨**와 자전거 대여량」이다. 이 데이터에서 숫자로 잰 날씨는 기온(`temp`) · 습도(`humidity`) · 풍속(`windspeed`) 세 가지이고, 이상치 레슨에서 상자그림으로 살핀 것도 이 셋이었다. ② 「바람이 세면 자전거를 덜 탈 것」이라는 생활 속 짐작으로는 관계가 있을 법하다. ③ 상관계수는 변수를 **하나씩** 떼어 본 값이다. 다른 변수와 **함께** 넣었을 때 쓸모가 있는지는 회귀 결과표의 **p값**(`P>|t|`)으로 따로 확인해야 한다. — 그래서 일부러 넣어 보고, (4) 결과표에서 정말 쓸모가 있는지 가려낸다.' },
         {
           kind: 'code', id: 'ft-xy', title: '독립 변수와 종속 변수 설정하기',
           code: "X = smtrain[['temp', 'hour', 'humidity', 'windspeed']]\ny = smtrain[【0】]",
@@ -78,7 +79,6 @@ export const T2 = {
           answer: 0, why: '계수는 「그 변수만 1 늘고 나머지는 그대로일 때 y 가 바뀌는 양」이다. y 가 로그 값이므로 자전거 대수로는 곱으로 바뀐다 — 아래 상자를 보자.',
         },
         { kind: 'tip', tone: 'key', title: '🔬 더 깊이 — 로그 값의 계수를 대여 수로 읽기', text: 'count = log(대여 수 + 1) 이므로 count 가 0.098 커지면 (대여 수 + 1) 은 e^0.098 ≈ **1.10배**가 된다. 곧 「한 시간 늦을 때마다 대여 수가 약 10% 많아진다」는 뜻이다. temp 의 0.0538 은 1℃ 오를 때마다 약 5.5%, humidity 의 −0.0134 는 습도 1% 오를 때마다 약 1.3% 줄어든다는 뜻이다.' },
-        { kind: 'free', title: '자유 실험', text: '결과에서 값 하나씩 꺼내 보자: `results.rsquared` · `results.params` · `results.pvalues` · `results.conf_int()`' },
       ],
       quiz: [
         { q: '`sm.OLS(y, X)` 에서 첫째 자리에 오는 것은?', choices: ['독립 변수 X', '종속 변수 y', '상수항'], answer: 1, why: 'statsmodels 는 (y, X) 차례다. scikit-learn 의 fit(X, y) 와 반대다.' },
@@ -127,7 +127,6 @@ export const T2 = {
           choices: ['실제로도 시각이 늦을수록 꾸준히 늘어나므로 잘 맞는다', '실제는 8시·17시에 솟았다 내려가는 모양이라, 직선 하나로는 이 모양을 그릴 수 없다', '시각은 대여량과 관계가 없다'],
           answer: 1, why: '위 계산기의 그래프에서 회색 실제 평균선과 파란 직선을 견주어 보자. 새벽에는 직선이 너무 높고 출근 시간에는 너무 낮다. 이 한계를 Ⅲ단원 「더 해 보기」에서 고쳐 본다.',
         },
-        { kind: 'free', title: '자유 실험', text: "새벽 3시와 저녁 6시를 한꺼번에 예측해 보자: `results2.predict(pd.DataFrame({'const': [1.0, 1.0], 'temp': [25, 25], 'hour': [3, 18], 'humidity': [50, 50]}))`" },
       ],
       quiz: [
         { q: '변수를 하나 뺐는데 R² 가 거의 그대로라면?', choices: ['뺀 변수는 설명에 거의 보탬이 되지 않았다', '모델이 잘못 만들어졌다', '그 변수가 가장 중요했다'], answer: 0, why: '설명력이 그대로이니 빼도 손해가 없다. 변수가 적은 식이 읽기도 쉽다.' },

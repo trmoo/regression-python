@@ -94,7 +94,6 @@ export class Notebook {
       if (c.kind === 'section') body.appendChild(h('div', { class: 'section-title' }, h('h3', {}, c.title), c.text && h('p', {}, rich(c.text))));
       else if (c.kind === 'tip') body.appendChild(buildTip(c));
       else if (c.kind === 'panel') body.appendChild(buildPanel(c, this.golden));
-      else if (c.kind === 'free') body.appendChild(this.buildFree(c));
       else if (c.kind === 'ask') body.appendChild(this.buildAsk(c));
       else body.appendChild(this.buildCell(c));
     }
@@ -399,42 +398,6 @@ export class Notebook {
     }
     saveStore();
     toast('정답을 채웠어요.');
-  }
-
-  // ── 자유 실험 셀 ──
-  buildFree(cell) {
-    const store = loadStore();
-    const key = this.lesson.id;
-    const area = h('textarea', { class: 'free-code', spellcheck: 'false', rows: 3, placeholder: '여기에 파이썬 코드를 쳐 보세요 (Ctrl+Enter 로 실행)' });
-    area.value = store.free[key] ?? '';
-    const out = h('div', { class: 'output' });
-    const fit = () => { area.style.height = 'auto'; area.style.height = `${Math.max(area.scrollHeight, 63)}px`; };
-    const btn = h('button', { class: 'btn run', onClick: () => run() }, '▶ 실행');
-    const run = async () => {
-      if (!area.value.trim()) { toast('코드를 먼저 쳐 보세요.'); return; }
-      if (engine.state === 'failed') { fill(out, h('div', { class: 'note' }, '🔌 파이썬 엔진이 꺼져 있어 자유 실험은 할 수 없어요. 위쪽 막대에서 [다시 시도] 를 눌러 보세요.')); return; }
-      btn.disabled = true;
-      fill(out, h('div', { class: 'note quiet' }, '⏳ 실행 중…'));
-      await this.catchUp('__free__');
-      const r = await pyRun(this.lesson.id, area.value);
-      btn.disabled = false;
-      if (r.fail) { fill(out, h('div', { class: 'note' }, `🔌 파이썬 엔진을 준비하지 못했어요: ${r.fail}`)); return; }
-      if (r.timeout) { fill(out, h('div', { class: 'fb error' }, '⏱ 30초를 넘어 멈췄어요. 엔진을 새로 띄웠습니다.')); return; }
-      fill(out, renderResult(r));
-    };
-    area.addEventListener('input', () => { store.free[key] = area.value; saveStore(); fit(); });
-    area.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.shiftKey || e.metaKey)) { e.preventDefault(); run(); }
-      if (e.key === 'Tab') { e.preventDefault(); area.setRangeText('    ', area.selectionStart, area.selectionEnd, 'end'); }
-    });
-    queueMicrotask(fit);
-    return h('section', { class: 'cell free' },
-      h('header', {}, h('h4', {}, `🧪 ${cell.title}`)),
-      h('p', { class: 'what' }, rich(cell.text)),
-      h('div', { class: 'codebox' }, area, h('div', { class: 'cellbtns' }, btn,
-        h('button', { class: 'btn ghost', onClick: () => { area.value = ''; store.free[key] = ''; saveStore(); fill(out); fit(); } }, '↺'))),
-      h('p', { class: 'tiny' }, '※ 위 셀에서 만든 변수를 그대로 쓸 수 있어요(아직 안 돌린 위 셀은 먼저 실행합니다).'),
-      out);
   }
 }
 

@@ -1,5 +1,5 @@
 // © 2026 티쳐무 · 모든 권리 보유
-// 「💾 활동 저장」 — 이 브라우저에 남은 활동(빈칸에 쓴 코드 · 통과 여부 · 고른 답 · 자유 실험 코드)을
+// 「💾 활동 저장」 — 이 브라우저에 남은 활동(빈칸에 쓴 코드 · 통과 여부 · 고른 답)을
 // 혼자 열리는 HTML 파일 한 장으로 만든다. 학번·이름은 이 파일에만 들어가고 어디에도 저장하지 않는다.
 // ⚠ 화면 요소(DOM)를 쓰지 말 것 — 글자(HTML)만 만든다. node 시험이 불러다 쓴다. 내려받기는 main.js 가 한다.
 import { TABS, graded, splitTemplate } from '../lessons/index.js';
@@ -60,8 +60,6 @@ export function buildReport(store, { id = '', name = '', when = new Date() } = {
     }
     const qa = store.quiz?.[l.id] ?? {};
     if (l.quiz?.length) parts.push(`<h4>📝 확인 문제</h4>${l.quiz.map((q, i) => choiceLine(q, qa[i])).join('')}`);
-    const free = String(store.free?.[l.id] ?? '').trim();
-    if (free) parts.push(`<h4>🧪 자유 실험에 쓴 코드</h4><pre>${esc(free)}</pre>`);
     return `<section><h3>${esc(t.num)}. ${esc(l.title)}</h3>${parts.join('')}</section>`;
   }).join('');
   return `<!doctype html>

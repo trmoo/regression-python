@@ -14,7 +14,6 @@
 //             「실행 전에 짐작하기」는 쓰지 않는다(2026-11-12 사용자 지시: 실행하고 결과를 해석하는 순서로).
 //   panel   : 눈으로 보기 도구(src/ui/panels 의 이름). py 가 있으면 tools/golden.mjs 가 그 코드를 돌려
 //             print 한 JSON 을 panelData 로 실어 준다(그림 속 숫자가 파이썬 결과와 같도록).
-//   free    : 자유 실험 칸
 import { T0 } from './t0-start.js';
 import { T1 } from './t1-eda.js';
 import { T2 } from './t2-ols.js';

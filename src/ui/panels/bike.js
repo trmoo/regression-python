@@ -357,5 +357,5 @@ export function mseBarsPanel(cell, d) {
   return h('div', {},
     h('p', { class: 'lead' }, '같은 평가용 데이터(random_state=2000)로 잰 MSE 다. 막대가 짧을수록 예측이 정확하다.'),
     d.map((x, i) => h('div', { class: `mse-row ${cls[i] ?? ''}` }, h('span', {}, x.name), h('span', { class: 'track' }, h('span', { class: 'fillbar', style: { display: 'block', width: `${(x.mse / max) * 100}%` } })), h('span', { class: 'val' }, f(x.mse, 3)))),
-    h('p', { class: 'tiny' }, `교과서 모델은 평균만 찍는 것보다 오차를 ${Math.round((1 - d[1].mse / d[0].mse) * 100)}% 줄였고, hour 를 범주로 바꾸면 교과서 모델보다 ${Math.round((1 - d[2].mse / d[1].mse) * 100)}% 더 줄어든다. season·weather 까지 범주로 바꾼 맨 아래 줄은 자유 실험에서 직접 확인해 보자.`));
+    h('p', { class: 'tiny' }, `교과서 모델은 평균만 찍는 것보다 오차를 ${Math.round((1 - d[1].mse / d[0].mse) * 100)}% 줄였고, hour 를 범주로 바꾸면 교과서 모델보다 ${Math.round((1 - d[2].mse / d[1].mse) * 100)}% 더 줄어든다. season·weather 까지 범주로 바꾼 맨 아래 줄은 같은 방법을 두 열에 더 쓴 결과다.`));
 }

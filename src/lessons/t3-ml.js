@@ -54,7 +54,6 @@ export const T3 = {
           choices: ['언제나 똑같이 나뉜다', '실행할 때마다 다른 줄이 뽑혀, 뒤에서 구할 MSE 도 조금씩 달라진다', '오류가 난다'],
           answer: 1, why: '씨앗 번호를 정해 두면 누가 언제 돌려도 똑같이 나뉘어 결과를 견줄 수 있다. 교과서와 같은 숫자를 얻으려면 2000 을 그대로 써야 한다.',
         },
-        { kind: 'free', title: '자유 실험', text: "평가용 데이터의 앞부분을 보자: `X_test.head()` — 줄 번호가 뒤섞여 있다. 무작위로 뽑았기 때문이다." },
       ],
       quiz: [
         { q: '`test_size=0.3` 의 뜻은?', choices: ['학습용이 30%', '평가용이 30%', '30번 반복'], answer: 1, why: '평가용(test) 데이터의 비율이다. 나머지 70% 가 학습용.' },
@@ -125,7 +124,6 @@ export const T3 = {
         },
         { kind: 'example', id: 'tr-coef', title: '학습된 계수 보기', what: '`coef_` 에 변수마다의 계수, `intercept_` 에 절편이 들어 있다.', code: "print(pd.Series(model.coef_, index=X.columns).round(4))\nprint('절편', round(model.intercept_, 4))" },
         { kind: 'tip', tone: 'easy', title: '계수를 볼 때 조심할 점', text: '`season`(계절)과 `month`(월)는 거의 같은 정보다. 그래서 둘의 몫이 엇갈려 season 은 음수, month 는 양수가 되었다. 기계학습 회귀는 계수 하나하나의 해석보다 **예측이 얼마나 정확한가**를 먼저 본다.' },
-        { kind: 'free', title: '자유 실험', text: "학습용 데이터로 잰 MSE 와 견주어 보자: `mean_squared_error(y_train, model.predict(X_train))` — 평가용과 비슷하면 외우기만 한 모델이 아니다." },
       ],
       quiz: [
         { q: 'scikit-learn 모델을 쓰는 순서로 알맞은 것은?', choices: ['predict → fit → 만들기', '만들기 → fit → predict', 'fit → 만들기 → predict'], answer: 1, why: '`LinearRegression()` 으로 만들고 `fit(X_train, y_train)` 으로 배우고 `predict(X_test)` 로 예측한다.' },
@@ -176,7 +174,6 @@ export const T3 = {
           answer: 1, why: '데이터 줄 수도, 나누는 방법도 같다. 바뀐 것은 hour 를 넣는 방식 하나다. 데이터를 들여다보고(점그래프) 그 모양에 맞게 변수를 다듬는 것이 예측을 크게 좋게 만든다.',
         },
         { kind: 'tip', tone: 'key', title: '탐색 단계에서 본 그래프가 답을 알려 주었다', text: 'Ⅰ단원의 점그래프에서 「hour 와 count 는 직선 관계가 아니다」를 이미 보았다. 회귀 분석은 코드를 돌리는 일만이 아니라, **탐색에서 찾은 사실을 모델에 반영하는 일**이다. 근무일인지에 따라 봉우리 모양이 달랐다는 것까지 넣으면 더 좋아질 수 있다.' },
-        { kind: 'free', title: '자유 실험', text: "`season` · `weather` 도 범주로 바꿔 보자: `pd.get_dummies(X, columns=['hour', 'season', 'weather'], drop_first=True, dtype=int)` 로 X2 를 다시 만들고 위 셀을 다시 실행한다." },
       ],
       quiz: [
         { q: '`pd.get_dummies(X, columns=[\'hour\'])` 가 하는 일은?', choices: ['hour 열을 지운다', 'hour 의 값마다 0·1 로 된 열을 만든다', 'hour 를 평균으로 바꾼다'], answer: 1, why: '「이 줄이 그 시각인가」를 0·1 로 나타내는 열들(원-핫 인코딩)을 만든다.' },

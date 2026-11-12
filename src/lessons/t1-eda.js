@@ -65,7 +65,6 @@ export const T1 = {
           blanks: [{ answers: ['value_counts'], hint: '값(value) + _ + 세다(counts)' }],
           read: '맑음(1)이 7,192줄로 가장 많고, 폭우·폭설(4)은 **딱 1줄**뿐이다. 이렇게 드문 범주는 모델이 배울 거리가 거의 없다.',
         },
-        { kind: 'free', title: '자유 실험', text: "`smtrain.shape` · `smtrain.columns` · `smtrain['hour'].value_counts()` 를 실행해 보자." },
       ],
       quiz: [
         { q: '`smtrain.head()` 처럼 괄호를 비우면 몇 줄이 나올까?', choices: ['3줄', '5줄', '10줄'], answer: 1, why: '기본값이 5다. 원하는 수가 있으면 `head(3)` 처럼 넣는다.' },
@@ -117,7 +116,6 @@ export const T1 = {
           choices: ['그래프에서 튀니까 아무 생각 없이 지운다', '기록 오류일 가능성을 따져 보고, 지우거나 비슷한 날의 값으로 채우는 등 처리 방법을 정한다', '상자그림은 원래 틀리기 쉬우니 무시한다'],
           answer: 1, why: '이상치는 「왜 그 값이 나왔나」를 먼저 따진다. 처리 방법(삭제·대체·유지)은 그 까닭에 따라 고른다. 전체 10,886줄 가운데 22줄이라 이 실습의 결과에는 영향이 작다.',
         },
-        { kind: 'free', title: '자유 실험', text: "습도가 0 인 줄만 골라 보자: `smtrain[smtrain['humidity'] == 0].head()` — 날짜가 서로 가까운가?" },
       ],
       quiz: [
         { q: 'Q1 = 7, Q3 = 17 이면 IQR 은?', choices: ['10', '24', '1.5'], answer: 0, why: 'IQR = Q3 − Q1 = 17 − 7 = 10.' },
@@ -194,7 +192,6 @@ export const T1 = {
           choices: ['그 시각의 일기예보 기온(`temp`)', '그 시각이 몇 시인지(`hour`)', '그 시각의 회원 대여 수(`registered`)'],
           answer: 2, why: '회원 대여 수는 대여가 끝나야 안다 — 예측하려는 값의 일부다. 이런 변수를 넣는 실수를 「데이터 누수」라고 한다.',
         },
-        { kind: 'free', title: '자유 실험', text: "요일별 점그래프도 그려 보자: `sns.pointplot(data=smtrain, x='hour', y='count', hue='dayofweek')`" },
       ],
       quiz: [
         { q: "`sns.pointplot(..., hue='workingday')` 에서 `hue` 가 하는 일은?", choices: ['그래프 제목을 정한다', '그 열의 값에 따라 색을 나누어 따로 그린다', 'x 축을 정한다'], answer: 1, why: '`hue` 는 색(색조)이라는 뜻이다. 근무일(1)과 쉬는 날(0)이 다른 색으로 그려진다.' },
@@ -256,7 +253,6 @@ export const T1 = {
           answer: 1, why: '자기 자신과의 상관은 언제나 1 이다. count 는 종속 변수이므로 독립 변수 후보에서는 뺀다 — 독립 변수 후보는 hour · temp · humidity 셋이다.',
         },
         { kind: 'tip', tone: 'warn', title: '다음 단계 미리 보기', text: '교과서의 통계적 회귀 실습은 이 셋에 `windspeed`(상관 0.12)를 더한 네 변수를 넣는다. 0.3 기준에 못 미치는 변수가 회귀 결과표에서 어떻게 나타나는지 다음 단원에서 확인해 보자.' },
-        { kind: 'free', title: '자유 실험', text: "atemp · year · month 를 cols 에 더해 상관행렬을 다시 구해 보자. 예: `smtrain[cols + ['atemp', 'year']].corr()['count']`" },
       ],
       quiz: [
         { q: '상관계수 −0.33 과 +0.33 의 관계의 세기는?', choices: ['−0.33 이 더 약하다', '세기는 같고 방향만 다르다', '+0.33 이 더 약하다'], answer: 1, why: '세기는 절댓값으로 본다. 그래서 고를 때 `abs()` 를 썼다.' },

@@ -30,7 +30,7 @@ for (const L of LESSONS) {
   ok(!ids.has(`L:${L.id}`), `레슨 아이디 겹침 ${L.id}`); ids.add(`L:${L.id}`);
   ok(L.goal?.length > 0, `${L.id}: 목표(goal)가 없음`);
   ok(L.quiz?.length >= 3, `${L.id}: 확인 문제가 3개보다 적음`);
-  ok(L.cells.filter((c) => c.kind === 'free').length <= 1, `${L.id}: 자유 실험 칸은 레슨마다 하나(저장 자리가 하나다)`);
+  ok(!L.cells.some((c) => c.kind === 'free'), `${L.id}: 자유 실험 칸은 2026-11-12 사용자 지시로 모두 뺐다`);
   for (const c of L.cells) {
     if (c.id) { ok(!ids.has(c.id), `셀 아이디 겹침 ${c.id}`); ids.add(c.id); }
     if (runnable(c)) ok(Boolean(c.id), `${L.id}: 아이디 없는 실행 셀`);
@@ -103,12 +103,13 @@ if (existsSync(PW_FILE)) {
   ok(blank.includes(`0 / ${nCode}`) && blank.includes('(적지 않음)') && blank.includes('2026. 11. 12. 09:05'), '빈 기록의 합계 · 이름 칸 · 저장한 때');
   ok(reportFileName({ when }) === '자전거회귀분석_활동_20261112.html', '이름을 비우면 파일 이름은 날짜로');
   ok(reportFileName({ id: '20315', name: '홍 길/동?', when }) === '20315_홍길동_자전거회귀분석.html', '파일 이름에서 빈칸 · 쓸 수 없는 글자를 뺀다');
-  // 모두 맞게 한 학생 — 빈칸에 정답 · 통과 · 고른 답 모두 정답 · 자유 실험에 태그를 넣어 본다
+  // 모두 맞게 한 학생 — 빈칸에 정답 · 통과 · 고른 답 모두 정답 · 마지막 빈칸 하나에는 태그를 넣어 본다
   const full = { ...empty, answers: {}, passed: {}, ask: {}, quiz: {}, free: {} };
   for (const c of ALL.filter(graded)) { full.answers[c.id] = c.blanks.map((b) => b.answers[0]); full.passed[c.id] = 1; }
   for (const c of ALL.filter((x) => x.kind === 'ask')) full.ask[c.id] = c.answer;
   for (const L of LESSONS) { full.quiz[L.id] = Object.fromEntries((L.quiz ?? []).map((q, i) => [i, q.answer])); }
-  full.free.intro = "print('<script>x = 1</script>')";
+  const lastCell = ALL.filter(graded).at(-1);
+  full.answers[lastCell.id] = ["'<script>x = 1</script>'", ...lastCell.blanks.slice(1).map((b) => b.answers[0])];
   const done = buildReport(full, { id: '20315', name: '<b>홍길동</b>', when });
   ok(done.includes(`${nCode} / ${nCode}`) && (done.match(/❌/g) ?? []).length === 0 && (done.match(/⭕/g) ?? []).length === nChoice, '모두 맞힌 기록의 합계와 ⭕ 개수');
   ok(done.includes('<mark>registered</mark>'), '빈칸에 쓴 글자가 노란 칸으로 들어간다');

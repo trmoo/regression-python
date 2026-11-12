@@ -51,7 +51,6 @@ export const T0 = {
         },
         { kind: 'panel', panel: 'logCount', id: 'pn-log', py: "import pandas as pd, numpy as np, json\ndf = pd.read_csv('smtrain.csv')\nraw = df['casual'] + df['registered']\nh1, e1 = np.histogram(raw, bins=30)\nh2, e2 = np.histogram(df['count'], bins=30)\nprint(json.dumps({'raw': h1.tolist(), 'rawEdges': e1.round(3).tolist(), 'log': h2.tolist(), 'logEdges': e2.round(4).tolist(), 'min': int(raw.min()), 'max': int(raw.max()), 'mean': round(float(raw.mean()), 1), 'median': float(raw.median())}))" },
         { kind: 'tip', tone: 'easy', title: '왜 로그로 바꿨을까', text: '대여 수는 한밤중 1 대부터 퇴근 시간 977 대까지 차이가 크고, 적은 값 쪽에 몰려 있다. 로그를 씌우면 큰 값은 많이, 작은 값은 조금 줄어들어 **고르게 퍼진 모양**이 되고, 직선 회귀가 다루기 쉬워진다. 다만 그만큼 **결과를 읽을 때 한 번 되돌려 생각**해야 한다.' },
-        { kind: 'free', title: '자유 실험', text: "실제 대여 수가 가장 많았던 때는 언제일까? `smtrain.loc[total.idxmax()]` 를 실행해 보자. — `total.idxmax()` 는 total 에서 **가장 큰 값이 있는 줄 번호**를 알려 주고, `smtrain.loc[줄 번호]` 는 smtrain 에서 **그 줄 하나를 통째로** 꺼낸다. 둘을 이으면 「대여 수가 가장 많았던 한 시간의 기록」이 나온다." },
       ],
       quiz: [
         { q: '이 실습에서 예측하려는 값(종속 변수)은?', choices: ['`temp` (기온)', '`count` (대여량)', '`hour` (시각)'], answer: 1, why: '기온·시각·습도 등으로 대여량을 예측한다. 예측하는 값이 종속 변수 y 다.' },

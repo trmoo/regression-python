@@ -152,10 +152,6 @@ input.blank {
 }
 input.blank.ok { border-color: var(--ok); background: var(--ok-soft); }
 input.blank.bad { border-color: var(--bad); background: var(--bad-soft); }
-textarea.free-code {
-  width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--code-bg);
-  font-size: 0.95rem; line-height: 1.6; resize: vertical; color: var(--ink);
-}
 .tiny { font-size: 0.8rem; color: var(--muted); }
 
 /* ── 피드백 · 힌트 · 읽는 법 ── */
